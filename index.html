@@ -16,7 +16,7 @@
 
     <nav class="bg-blue-900 text-white p-4 shadow-xl">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-tight">GPS PETHGAM WAGOORA</h1>
+            <h1 class="text-xl font-bold tracking-tight uppercase">GPS PETHGAM WAGOORA</h1>
             <div class="flex items-center gap-4">
                 <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
                 <label for="excelInput" class="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2 rounded-full font-bold cursor-pointer transition shadow-lg">
@@ -62,7 +62,7 @@
     <div id="pdf-render-zone">
         <div id="marksheet-template" class="bg-white p-12 border-[12px] border-double border-blue-900">
             <div class="text-center border-b-4 border-red-600 pb-4 mb-8">
-                <h2 class="text-4xl font-black text-blue-900">GOVT. PRIMARY SCHOOL PETHGAM WAGOORA</h2>
+                <h2 class="text-4xl font-black text-blue-900 uppercase">Govt. Primary School Pethgam Wagoora</h2>
                 <p class="text-2xl font-bold text-red-600 uppercase mt-2 tracking-widest">Annual Progress Report</p>
             </div>
 
@@ -70,7 +70,7 @@
 
             <table class="w-full border-2 border-black mb-10 text-center text-lg">
                 <thead class="bg-slate-100">
-                    <tr>
+                    <tr class="font-bold">
                         <th class="border-2 border-black p-3">Subject</th>
                         <th class="border-2 border-black p-3">Max Marks</th>
                         <th class="border-2 border-black p-3">Marks Obtained</th>
@@ -80,12 +80,8 @@
             </table>
 
             <div class="grid grid-cols-2 gap-10 mt-20 font-bold text-center">
-                <div>
-                    <div class="border-t-2 border-black pt-2 mx-auto w-48 text-xl">Class Teacher</div>
-                </div>
-                <div>
-                    <div class="border-t-2 border-black pt-2 mx-auto w-48 text-xl">Headmaster</div>
-                </div>
+                <div><div class="border-t-2 border-black pt-2 mx-auto w-48 text-xl">Class Teacher</div></div>
+                <div><div class="border-t-2 border-black pt-2 mx-auto w-48 text-xl">Headmaster</div></div>
             </div>
         </div>
     </div>
@@ -93,10 +89,17 @@
     <script>
         let studentData = [];
 
-        // Helper to find column keys because Excel headers have extra spaces/newlines
-        function findKey(row, pattern) {
-            const keys = Object.keys(row);
-            return keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(pattern.toLowerCase().replace(/[^a-z0-9]/g, '')));
+        // Convert Excel Serial Date to String
+        function formatExcelDate(serial) {
+            if (!serial || isNaN(serial)) return serial || "N/A";
+            const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
+            return date.toLocaleDateString('en-GB'); // Format: DD/MM/YYYY
+        }
+
+        // Smart Key Finder to handle multi-line headers or extra spaces
+        function findVal(row, pattern) {
+            const key = Object.keys(row).find(k => k.replace(/\s/g, '').toLowerCase().includes(pattern.toLowerCase()));
+            return key ? row[key] : null;
         }
 
         document.getElementById('excelInput').addEventListener('change', function(e) {
@@ -105,12 +108,11 @@
             const reader = new FileReader();
             reader.onload = (evt) => {
                 const workbook = XLSX.read(evt.target.result, { type: 'binary' });
-                // We read the first sheet
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
                 
-                // Important: Sheets with multi-row headers often need to be cleaned
-                // We skip common header junk if the first few rows are empty
+                // IMPORTANT: skip decorative headers (range: 3 skips rows 1, 2, 3)
+                const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
+                
                 studentData = processStudents(json);
                 renderTable(studentData);
             };
@@ -118,30 +120,37 @@
         });
 
         function processStudents(data) {
-            // Filter out rows that don't have a name or roll number
-            return data.filter(row => findKey(row, 'Name')).map(row => {
-                // Mapping based on your provided images
+            return data.filter(row => findVal(row, 'name')).map(row => {
+                // Percentage cleanup to avoid 59.59999%
+                let rawPerc = findVal(row, 'percentage') || 0;
+                let cleanPerc = !isNaN(rawPerc) ? parseFloat(rawPerc).toFixed(1) : rawPerc;
+
                 const s = {
-                    rollNo: row[findKey(row, 'RollNo')] || row['__EMPTY_1'] || "N/A",
-                    name: row[findKey(row, 'Name')] || "N/A",
-                    father: row[findKey(row, 'Father')] || "N/A",
-                    mother: row[findKey(row, 'Mother')] || "N/A",
-                    contact: row[findKey(row, 'Contact')] || "N/A",
-                    dob: row[findKey(row, 'DOB')] || "N/A",
-                    apaarId: row[findKey(row, 'Apaar')] || "N/A",
-                    pen: row[findKey(row, 'PEN')] || "N/A",
-                    remarks: row[findKey(row, 'Remarks')] || "Promoted",
-                    total: row[findKey(row, 'GrandTotal')] || 0,
-                    percentage: row[findKey(row, 'Percentage')] || 0,
-                    grade: row[findKey(row, 'Grade')] || "N/A"
+                    rollNo: findVal(row, 'roll') || "N/A",
+                    name: findVal(row, 'name') || "N/A",
+                    father: findVal(row, 'father') || "N/A",
+                    mother: findVal(row, 'mother') || "N/A",
+                    contact: findVal(row, 'contact') || "N/A",
+                    dob: formatExcelDate(findVal(row, 'dob')),
+                    apaarId: findVal(row, 'apaar') || "N/A",
+                    pen: findVal(row, 'pen') || "N/A",
+                    remarks: findVal(row, 'remarks') || "Promoted",
+                    total: findVal(row, 'grandtotal') || 0,
+                    percentage: cleanPerc,
+                    grade: findVal(row, 'grade') || "N/A"
                 };
 
-                // Subject Mapping - specifically looking for the "Total" columns per subject
-                const subjects = ['English', 'Mathematics', 'Environment Science', 'Urdu', 'Kashmiri'];
-                s.marks = subjects.map(sub => {
-                    // In complex sheets, XLSX often names duplicate "Total" columns as Total_1, Total_2
-                    // We attempt to find values or set default
-                    return { name: sub, score: row[findKey(row, sub)] || "---" };
+                // Match specific subject "Total" columns from your Excel images
+                const subPatterns = ['english', 'mathematics', 'environment', 'urdu', 'kashmiri'];
+                s.marks = subPatterns.map(p => {
+                    // This looks for the "Total" column specifically for each subject
+                    const scoreKey = Object.keys(row).find(k => 
+                        k.toLowerCase().includes(p) && k.toLowerCase().includes('total')
+                    );
+                    return { 
+                        name: p.charAt(0).toUpperCase() + p.slice(1).replace('environment', 'EVS'), 
+                        score: row[scoreKey] || 0 
+                    };
                 });
 
                 return s;
@@ -151,10 +160,9 @@
         function renderTable(data) {
             const tbody = document.getElementById('studentTableBody');
             document.getElementById('studentCount').innerText = data.length;
-            
             tbody.innerHTML = data.map((s, idx) => `
                 <tr class="hover:bg-blue-50 transition border-b border-slate-100">
-                    <td class="p-4 font-mono font-bold text-slate-500">${s.rollNo}</td>
+                    <td class="p-4 font-bold text-slate-600">${s.rollNo}</td>
                     <td class="p-4 font-bold text-blue-900">${s.name}</td>
                     <td class="p-4 text-xs">${s.apaarId}</td>
                     <td class="p-4 text-xs">${s.pen}</td>
@@ -164,7 +172,7 @@
                     <td class="p-4"><span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black">${s.grade}</span></td>
                     <td class="p-4 text-emerald-600 font-medium">${s.remarks}</td>
                     <td class="p-4 text-center">
-                        <button onclick="downloadPDF(${idx})" class="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md transition-all active:scale-95">GENERATE PDF</button>
+                        <button onclick="downloadPDF(${idx})" class="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md transition-all active:scale-95 uppercase">Generate PDF</button>
                     </td>
                 </tr>
             `).join('');
@@ -210,7 +218,7 @@
                 margin: 0, 
                 filename: `Report_${s.name}.pdf`, 
                 image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 2, useCORS: true }, 
+                html2canvas: { scale: 3, useCORS: true }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
             };
             
@@ -220,12 +228,12 @@
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             const filtered = studentData.filter(s => 
-                s.name.toLowerCase().includes(val) || 
-                s.apaarId.toString().includes(val)
+                s.name.toLowerCase().includes(val) || s.apaarId.toString().includes(val)
             );
             renderTable(filtered);
         });
     </script>
 </body>
 </html>
-                                
+        
+                    
