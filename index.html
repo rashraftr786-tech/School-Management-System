@@ -3,238 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Pethgam Wagoora | Result System Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>GPS Pethgam Wagoora - Result Management System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        #pdf-render-zone { position: absolute; left: -9999px; top: 0; width: 210mm; }
-        .table-xs th, .table-xs td { font-size: 0.75rem; padding: 0.5rem; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-100 font-sans">
+<body>
+    <div class="container">
+        <header>
+            <div class="school-header">
+                <img src="https://via.placeholder.com/100x100/4A90E2/FFFFFF?text=GPS" alt="School Logo" class="school-logo">
+                <div class="school-info">
+                    <h1>Government Primary School Pethgam Wagoora</h1>
+                    <p>Wagoora, Sopore, Jammu & Kashmir</p>
+                </div>
+            </div>
+        </header>
 
-    <nav class="bg-blue-900 text-white p-4 shadow-xl">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-tight">GPS PETHGAM WAGOORA</h1>
-            <div class="flex items-center gap-4">
-                <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
-                <label for="excelInput" class="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2 rounded-full font-bold cursor-pointer transition shadow-lg">
-                    📥 Upload Report Sheet
-                </label>
+        <div class="upload-section">
+            <div class="upload-card">
+                <h2>📁 Upload Excel Results</h2>
+                <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
+                <button onclick="processExcel()" class="btn-primary">Process File</button>
             </div>
         </div>
-    </nav>
 
-    <main class="container mx-auto p-4 md:p-8">
-        <div class="flex flex-col md:flex-row justify-between mb-6 gap-4 items-center">
-            <input type="text" id="searchInput" placeholder="Search by Student Name or Apaar ID..." class="border-2 border-blue-200 p-3 rounded-xl w-full md:w-1/2 shadow-sm focus:ring-4 focus:ring-blue-100 outline-none transition-all">
-            <div class="bg-white px-6 py-3 rounded-xl shadow-sm border border-blue-100">
-                <p class="text-sm text-slate-500">Students Processed: <span id="studentCount" class="font-bold text-blue-600 text-lg">0</span></p>
-            </div>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search by name, roll, class..." onkeyup="filterTable()">
+            <select id="classFilter" onchange="filterTable()">
+                <option value="">All Classes</option>
+            </select>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse table-xs">
-                    <thead class="bg-slate-50 border-b-2 border-slate-100">
-                        <tr class="text-slate-600 uppercase">
-                            <th class="p-4">Roll</th>
-                            <th class="p-4">Student Name</th>
-                            <th class="p-4">Apaar ID</th>
-                            <th class="p-4">PEN Number</th>
-                            <th class="p-4">DOB</th>
-                            <th class="p-4">Total</th>
-                            <th class="p-4">%</th>
-                            <th class="p-4">Grade</th>
-                            <th class="p-4">Remarks</th>
-                            <th class="p-4 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentTableBody" class="divide-y divide-slate-100">
-                        <tr><td colspan="10" class="p-20 text-center text-slate-400 italic">Waiting for Excel data upload...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <div id="pdf-render-zone">
-        <div id="marksheet-template" class="bg-white p-12 border-[12px] border-double border-blue-900">
-            <div class="text-center border-b-4 border-red-600 pb-4 mb-8">
-                <h2 class="text-4xl font-black text-blue-900">GOVT. PRIMARY SCHOOL PETHGAM WAGOORA</h2>
-                <p class="text-2xl font-bold text-red-600 uppercase mt-2 tracking-widest">Annual Progress Report</p>
-            </div>
-
-            <div id="info-grid" class="grid grid-cols-2 gap-x-12 gap-y-3 mb-10 text-lg border-b pb-8"></div>
-
-            <table class="w-full border-2 border-black mb-10 text-center text-lg">
-                <thead class="bg-slate-100">
+        <div class="table-container">
+            <table id="resultsTable" class="results-table">
+                <thead>
                     <tr>
-                        <th class="border-2 border-black p-3">Subject</th>
-                        <th class="border-2 border-black p-3">Max Marks</th>
-                        <th class="border-2 border-black p-3">Marks Obtained</th>
+                        <th>Photo</th>
+                        <th>Student Name</th>
+                        <th>Father's Name</th>
+                        <th>Roll No</th>
+                        <th>Class</th>
+                        <th>Total (%)</th>
+                        <th>Grade</th>
+                        <th>Rank</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="marks-table-body"></tbody>
+                <tbody id="tableBody"></tbody>
             </table>
-
-            <div class="grid grid-cols-2 gap-10 mt-20 font-bold text-center">
-                <div>
-                    <div class="border-t-2 border-black pt-2 mx-auto w-48 text-xl">Class Teacher</div>
-                </div>
-                <div>
-                    <div class="border-t-2 border-black pt-2 mx-auto w-48 text-xl">Headmaster</div>
-                </div>
-            </div>
         </div>
     </div>
 
-    <script>
-        let studentData = [];
+    <!-- Photo Upload Modal -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Upload Student Photo</h3>
+            <input type="file" id="photoFile" accept="image/*">
+            <button onclick="uploadPhoto()" class="btn-primary">Upload</button>
+        </div>
+    </div>
 
-        // Fix 2: Helper to convert Excel Serial Date to String
-        function formatExcelDate(serial) {
-            if(!serial || isNaN(serial)) return serial || "N/A";
-            const date = XLSX.SSF.parse_date_code(serial);
-            return `${date.d.toString().padStart(2, '0')}-${date.m.toString().padStart(2, '0')}-${date.y}`;
-        }
-
-        function findKey(row, pattern) {
-            const keys = Object.keys(row);
-            return keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(pattern.toLowerCase().replace(/[^a-z0-9]/g, '')));
-        }
-
-        document.getElementById('excelInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                const workbook = XLSX.read(evt.target.result, { type: 'binary' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-                
-                studentData = processStudents(json);
-                renderTable(studentData);
-            };
-            reader.readAsBinaryString(file);
-        });
-
-        function processStudents(data) {
-    return data.filter(row => {
-        const nameVal = String(row[findKey(row, 'Name')] || "").trim();
-        return nameVal !== "" && nameVal.toLowerCase() !== "name";
-    }).map(row => {
-        // 1. Map individual subjects to their SPECIFIC "Total (FA+CC+SA)" columns
-        const marks = [
-            { name: 'English', score: row['Total (FA+CC+SA)'] || row['R'] || 0 },
-            { name: 'Mathematics', score: row['Total (FA+CC+SA)_1'] || row['AB'] || 0 },
-            { name: 'Environment Science', score: row['Total (FA+CC+SA)_2'] || row['AL'] || 0 },
-            { name: 'Urdu', score: row['Total (FA+CC+SA)_3'] || row['AV'] || 0 },
-            { name: 'Kashmiri', score: row['Total (FA+CC+SA)_4'] || row['BF'] || 0 }
-        ];
-
-        // 2. Pull the final Grand Total from Column BG
-        const grandTotalValue = parseFloat(row[findKey(row, 'Grand Total')]) || 0;
-
-        return {
-            rollNo: row['Roll No'] || row['B'] || "N/A",
-            name: row['Name'] || row['D'] || "N/A",
-            father: row["Father's Name"] || row['E'] || "N/A",
-            mother: row["Mother's Name"] || row['F'] || "N/A",
-            contact: row['Contact No'] || row['G'] || "N/A",
-            dob: formatExcelDate(row['D.O.B'] || row['H']),
-            apaarId: row['Apaar ID'] || row['BN'] || "N/A",
-            pen: row['PEN Number'] || row['BO'] || "N/A",
-            remarks: row['Remarks'] || row['BM'] || "Promoted",
-            total: grandTotalValue,
-            percentage: (parseFloat(row['Percentage'] || row['BH']) || 0).toFixed(1),
-            grade: row['Grade'] || row['BJ'] || "N/A",
-            marks: marks
-        };
-    });
-}
-
-        function renderTable(data) {
-            const tbody = document.getElementById('studentTableBody');
-            document.getElementById('studentCount').innerText = data.length;
-            
-            tbody.innerHTML = data.map((s, idx) => `
-                <tr class="hover:bg-blue-50 transition border-b border-slate-100">
-                    <td class="p-4 font-mono font-bold text-slate-500">${s.rollNo}</td>
-                    <td class="p-4 font-bold text-blue-900">${s.name}</td>
-                    <td class="p-4 text-xs">${s.apaarId}</td>
-                    <td class="p-4 text-xs">${s.pen}</td>
-                    <td class="p-4">${s.dob}</td>
-                    <td class="p-4 font-bold">${s.total}</td>
-                    <td class="p-4">${s.percentage}%</td>
-                    <td class="p-4 text-center"><span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black">${s.grade}</span></td>
-                    <td class="p-4 text-emerald-600 font-medium">${s.remarks}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="downloadPDF(${idx})" class="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md transition-all active:scale-95">GENERATE PDF</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        async function downloadPDF(idx) {
-            const s = studentData[idx];
-            document.getElementById('info-grid').innerHTML = `
-                <div>
-                    <p><strong>Student Name:</strong> ${s.name}</p>
-                    <p><strong>Father's Name:</strong> ${s.father}</p>
-                    <p><strong>Mother's Name:</strong> ${s.mother}</p>
-                    <p><strong>Date of Birth:</strong> ${s.dob}</p>
-                </div>
-                <div>
-                    <p><strong>Apaar ID:</strong> ${s.apaarId}</p>
-                    <p><strong>PEN Number:</strong> ${s.pen}</p>
-                    <p><strong>Roll No:</strong> ${s.rollNo}</p>
-                    <p><strong>Contact:</strong> ${s.contact}</p>
-                </div>
-            `;
-            
-            document.getElementById('marks-table-body').innerHTML = s.marks.map(m => `
-                <tr>
-                    <td class="border-2 border-black p-3 text-left font-bold pl-8">${m.name}</td>
-                    <td class="border-2 border-black p-3">100</td>
-                    <td class="border-2 border-black p-3 font-bold">${m.score}</td>
-                </tr>
-            `).join('') + `
-                <tr class="bg-slate-50 font-black">
-                    <td class="border-2 border-black p-4 text-right uppercase">GRAND TOTAL</td>
-                    <td class="border-2 border-black p-4">500</td>
-                    <td class="border-2 border-black p-4 text-blue-800 text-xl">${s.total} (${s.percentage}%)</td>
-                </tr>
-                <tr class="font-black">
-                    <td colspan="2" class="border-2 border-black p-4 text-right uppercase">Result / Remarks</td>
-                    <td class="border-2 border-black p-4 text-emerald-700 text-xl font-bold">${s.remarks}</td>
-                </tr>
-            `;
-
-            const element = document.getElementById('marksheet-template');
-            const opt = { 
-                margin: 0, 
-                filename: `Report_${s.name.replace(/\s+/g, '_')}.pdf`, 
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 2, useCORS: true }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
-            };
-            
-            html2pdf().set(opt).from(element).save();
-        }
-
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            const filtered = studentData.filter(s => 
-                s.name.toLowerCase().includes(val) || 
-                s.apaarId.toString().includes(val) ||
-                s.rollNo.toString().includes(val)
-            );
-            renderTable(filtered);
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
-            
-        
