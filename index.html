@@ -121,36 +121,40 @@
         });
 
         function processStudents(data) {
-            // Fix 1: Filter out Header rows and empty rows based on Student Name content
-            return data.filter(row => {
-                const nameVal = String(row[findKey(row, 'Name')] || "").trim();
-                return nameVal !== "" && nameVal.toLowerCase() !== "name" && nameVal.toLowerCase() !== "student name";
-            }).map(row => {
-                const s = {
-                    rollNo: row[findKey(row, 'Roll')] || "N/A",
-                    name: row[findKey(row, 'Name')] || "N/A",
-                    father: row[findKey(row, 'Father')] || "N/A",
-                    mother: row[findKey(row, 'Mother')] || "N/A",
-                    contact: row[findKey(row, 'Contact')] || "N/A",
-                    dob: formatExcelDate(row[findKey(row, 'DOB')]),
-                    apaarId: row[findKey(row, 'Apaar')] || "N/A",
-                    pen: row[findKey(row, 'PEN')] || "N/A",
-                    remarks: row[findKey(row, 'Remarks')] || "Promoted",
-                    total: parseFloat(row[findKey(row, 'GrandTotal')]) || 0,
-                    // Fix 3: Precision rounding for percentage
-                    percentage: (parseFloat(row[findKey(row, 'Percentage')]) || 0).toFixed(2),
-                    grade: row[findKey(row, 'Grade')] || "N/A"
-                };
+    return data.filter(row => {
+        const nameVal = String(row[findKey(row, 'Name')] || "").trim();
+        return nameVal !== "" && nameVal.toLowerCase() !== "name";
+    }).map(row => {
+        // 1. Extract the Correct Grand Total first
+        const finalTotal = parseFloat(row[findKey(row, 'GrandTotal')]) || 0;
+        const subjects = ['English', 'Mathematics', 'Environment Science', 'Urdu', 'Kashmiri'];
+        
+        // 2. Map individual marks dynamically
+        // This ensures if English is 60 in Excel, it shows 60, not 3.
+        const marks = subjects.map(sub => {
+            let scoreValue = row[findKey(row, sub)] || row[findKey(row, sub + ' Marks')] || 0;
+            return { name: sub, score: scoreValue };
+        });
 
-                const subjects = ['English', 'Mathematics', 'Environment Science', 'Urdu', 'Kashmiri'];
-                s.marks = subjects.map(sub => {
-                    // Fix 5: Ensure we pull from the specific total column for the subject
-                    return { name: sub, score: row[findKey(row, sub + 'Total')] || row[findKey(row, sub)] || "---" };
-                });
+        return {
+            rollNo: row[findKey(row, 'Roll')] || "N/A",
+            name: row[findKey(row, 'Name')] || "N/A",
+            father: row[findKey(row, 'Father')] || "N/A",
+            mother: row[findKey(row, 'Mother')] || "N/A",
+            contact: row[findKey(row, 'Contact')] || "N/A",
+            dob: formatExcelDate(row[findKey(row, 'DOB')]),
+            apaarId: row[findKey(row, 'Apaar')] || "N/A",
+            pen: row[findKey(row, 'PEN')] || "N/A",
+            remarks: row[findKey(row, 'Remarks')] || "Promoted",
+            total: finalTotal,
+            // 3. Keep the percentage locked to the Grand Total
+            percentage: ((finalTotal / 500) * 100).toFixed(2),
+            grade: row[findKey(row, 'Grade')] || "N/A",
+            marks: marks
+        };
+    });
+}
 
-                return s;
-            });
-        }
 
         function renderTable(data) {
             const tbody = document.getElementById('studentTableBody');
