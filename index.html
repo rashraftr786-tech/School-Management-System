@@ -8,19 +8,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Hide the template from view but keep it for PDF generation */
-        #marksheet-pdf-area { position: absolute; left: -9999px; top: -9999px; }
-        @media print { .no-print { display: none; } }
+        /* Hidden container for PDF generation */
+        #pdf-render-zone { 
+            position: absolute; 
+            left: -9999px; 
+            top: 0; 
+            width: 210mm; /* A4 Width */
+        }
+        #debug-log { position: fixed; bottom: 0; right: 0; background: #000; color: #0f0; font-size: 10px; padding: 5px; max-height: 100px; overflow: auto; width: 300px; z-index: 9999; opacity: 0.8; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
 
-    <div id="debug-log" class="fixed bottom-0 right-0 bg-black text-green-400 text-[10px] p-2 max-h-24 overflow-auto width-72 z-50 opacity-80 pointer-events-none">System Log: Ready...</div>
+    <div id="debug-log">System Log: Ready...</div>
 
-    <nav class="bg-blue-800 text-white p-4 shadow-lg no-print">
+    <nav class="bg-blue-800 text-white p-4 shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">GPS Pethgam Wagoora</h1>
-            <div class="flex items-center gap-4">
+            <div class="space-x-4">
                 <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
                 <label for="excelInput" class="bg-yellow-500 hover:bg-yellow-400 text-blue-900 px-4 py-2 rounded-lg font-bold cursor-pointer transition">
                     📥 Upload Excel
@@ -29,60 +34,63 @@
         </div>
     </nav>
 
-    <main class="container mx-auto p-6 no-print">
+    <main class="container mx-auto p-6">
         <div class="flex flex-col md:flex-row justify-between mb-6 gap-4">
-            <input type="text" id="searchInput" placeholder="Search by Student Name..." class="border p-2 rounded-lg w-full md:w-1/3 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="searchInput" placeholder="Search by Student Name..." class="border p-2 rounded-lg w-full md:w-1/3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <div class="bg-white p-2 px-4 rounded-lg shadow border">
                 <p>Students Loaded: <span id="studentCount" class="font-bold text-blue-600">0</span></p>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-md overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse min-w-max">
                 <thead class="bg-gray-100 border-b">
                     <tr>
-                        <th class="p-4 text-sm">Roll No</th>
-                        <th class="p-4 text-sm">Class</th>
-                        <th class="p-4 text-sm">Student Name</th>
-                        <th class="p-4 text-sm">Father's Name</th>
-                        <th class="p-4 text-sm">Total %</th>
-                        <th class="p-4 text-sm">Grade</th>
-                        <th class="p-4 text-center text-sm">Actions</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Adm. No</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Roll No</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Class</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Student Name</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Father's Name</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Mother's Name</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Contact</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">DOB</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Total %</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold">Grade</th>
+                        <th class="p-3 text-xs uppercase text-gray-600 font-bold text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="studentTableBody" class="text-gray-700">
-                    <tr><td colspan="7" class="p-10 text-center text-gray-400">No data uploaded yet. Please select an Excel file.</td></tr>
+                <tbody id="studentTableBody" class="divide-y">
+                    <tr><td colspan="11" class="p-10 text-center text-gray-400">Please upload an Excel file to see data.</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
 
-    <div id="marksheet-pdf-area" class="bg-white p-10 w-[210mm]">
-        <div class="border-4 border-blue-900 p-2">
-            <div class="border-2 border-blue-800 p-6">
-                <div class="text-center mb-6">
-                    <h2 class="text-3xl font-extrabold text-blue-900 uppercase">Govt. Primary School Pethgam Wagoora</h2>
-                    <p class="text-lg text-red-600 font-bold border-y-2 border-red-600 inline-block px-4 my-2">ANNUAL PROGRESS REPORT</p>
+    <div id="pdf-render-zone">
+        <div id="marksheet-template" class="bg-white p-10 border-[12px] border-double border-blue-900">
+            <div class="text-center border-b-4 border-red-600 pb-4 mb-6">
+                <h2 class="text-3xl font-black text-blue-900">GOVT. PRIMARY SCHOOL PETHGAM WAGOORA</h2>
+                <p class="text-xl font-bold text-red-600 tracking-widest uppercase mt-2">Annual Progress Report</p>
+            </div>
+            
+            <div id="student-info-grid" class="grid grid-cols-2 gap-4 mb-8 text-lg">
                 </div>
-                
-                <div id="ms-content" class="grid grid-cols-2 gap-y-2 mb-6 text-sm">
-                    </div>
 
-                <table class="w-full border-collapse border border-black text-center text-sm">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border border-black p-1">Subject</th>
-                            <th class="border border-black p-1">Max Marks</th>
-                            <th class="border border-black p-1">Marks Obtained</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ms-table-body"></tbody>
-                </table>
-                
-                <div class="mt-10 flex justify-between font-bold text-sm">
-                    <p>Class Teacher</p>
-                    <p>Headmaster / Principal</p>
-                </div>
+            <table class="w-full border-2 border-black mb-8 text-center">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-black p-2">Subject</th>
+                        <th class="border border-black p-2">Max Marks</th>
+                        <th class="border border-black p-2">Marks Obtained</th>
+                    </tr>
+                </thead>
+                <tbody id="marks-table-body">
+                    </tbody>
+            </table>
+
+            <div class="mt-20 flex justify-between px-4 font-bold text-lg">
+                <div class="border-t-2 border-black pt-2 px-6">Class Teacher</div>
+                <div class="border-t-2 border-black pt-2 px-6">Headmaster</div>
             </div>
         </div>
     </div>
@@ -96,7 +104,6 @@
 
         let studentData = [];
 
-        // 1. Handle File Upload
         document.getElementById('excelInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -109,112 +116,143 @@
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const json = XLSX.utils.sheet_to_json(sheet);
                     
-                    studentData = processData(json);
-                    renderTable(studentData);
-                    log(`Loaded ${studentData.length} students.`);
+                    studentData = processStudents(json);
+                    displayData(studentData);
+                    log(`Processed ${studentData.length} records.`);
                 } catch (err) {
-                    log("ERROR: " + err.message);
+                    log("Error: " + err.message);
                 }
             };
             reader.readAsBinaryString(file);
         });
 
-        // 2. Data Processing Logic
-        function processData(data) {
-            return data.map(s => {
-                const subs = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
-                let totalObtained = 0;
+        function processStudents(data) {
+            return data.map(row => {
+                const subjects = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
+                let grandTotal = 0;
                 
-                s.MarksList = subs.map(sub => {
-                    const marks = (Number(s[sub + '_FA']) || 0) + (Number(s[sub + '_CC']) || 0) + (Number(s[sub + '_SA']) || 0);
-                    totalObtained += marks;
-                    return { name: sub, score: marks };
+                const marksList = subjects.map(sub => {
+                    // Try to find columns like English_FA + English_SA etc
+                    const fa = Number(row[sub + '_FA']) || 0;
+                    const sa = Number(row[sub + '_SA']) || 0;
+                    const cc = Number(row[sub + '_CC']) || 0;
+                    const total = fa + sa + cc;
+                    grandTotal += total;
+                    return { name: sub, score: total };
                 });
 
-                s.GrandTotal = totalObtained;
-                s.Percentage = ((totalObtained / 500) * 100).toFixed(2); // Assuming 100 per subject
-                s.Grade = s.Percentage >= 90 ? 'A+' : s.Percentage >= 80 ? 'A' : s.Percentage >= 70 ? 'B' : s.Percentage >= 50 ? 'C' : 'D';
-                return s;
+                const percentage = (grandTotal / 5).toFixed(2);
+                let grade = 'E';
+                if (percentage >= 90) grade = 'A+';
+                else if (percentage >= 80) grade = 'A';
+                else if (percentage >= 70) grade = 'B';
+                else if (percentage >= 60) grade = 'C';
+                else if (percentage >= 40) grade = 'D';
+
+                return {
+                    admNo: row.AdmissionNo || row.Adm_No || 'N/A',
+                    rollNo: row.RollNo || row.Roll_No || 'N/A',
+                    class: row.Class || 'N/A',
+                    name: row.StudentName || row.Name || 'N/A',
+                    father: row.FatherName || row.Father_Name || 'N/A',
+                    mother: row.MotherName || row.Mother_Name || 'N/A',
+                    contact: row.Contact || row.Phone || 'N/A',
+                    dob: row.DOB || row.DateOfBirth || 'N/A',
+                    marks: marksList,
+                    total: grandTotal,
+                    percentage: percentage,
+                    grade: grade
+                };
             });
         }
 
-        // 3. Render Table
-        function renderTable(data) {
+        function displayData(data) {
             const tbody = document.getElementById('studentTableBody');
             document.getElementById('studentCount').innerText = data.length;
             
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="p-10 text-center text-gray-400">No results found.</td></tr>';
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="p-10 text-center text-gray-400">No matching students found.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = data.map((s, idx) => `
-                <tr class="border-b hover:bg-blue-50 transition">
-                    <td class="p-4">${s.RollNo || s.Roll_No || 'N/A'}</td>
-                    <td class="p-4">${s.Class || 'N/A'}</td>
-                    <td class="p-4 font-bold text-blue-900">${s.StudentName || s.Name || 'N/A'}</td>
-                    <td class="p-4">${s.FatherName || s.Father_Name || 'N/A'}</td>
-                    <td class="p-4 font-semibold">${s.Percentage}%</td>
-                    <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-bold">${s.Grade}</span></td>
-                    <td class="p-4 text-center">
-                        <button onclick="generatePDF(${idx})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded shadow-sm text-xs">Download PDF</button>
+                <tr class="hover:bg-blue-50 transition border-b">
+                    <td class="p-3 text-sm">${s.admNo}</td>
+                    <td class="p-3 text-sm font-bold">${s.rollNo}</td>
+                    <td class="p-3 text-sm">${s.class}</td>
+                    <td class="p-3 text-sm font-bold text-blue-800">${s.name}</td>
+                    <td class="p-3 text-sm">${s.father}</td>
+                    <td class="p-3 text-sm">${s.mother}</td>
+                    <td class="p-3 text-sm">${s.contact}</td>
+                    <td class="p-3 text-sm">${s.dob}</td>
+                    <td class="p-3 text-sm font-bold">${s.percentage}%</td>
+                    <td class="p-3 text-sm"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">${s.grade}</span></td>
+                    <td class="p-3 text-center">
+                        <button onclick="downloadPDF(${idx})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-xs font-bold transition">PDF</button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // 4. Search Filter
         document.getElementById('searchInput').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = studentData.filter(s => 
-                (s.StudentName || s.Name || "").toLowerCase().includes(term)
-            );
-            renderTable(filtered);
+            const val = e.target.value.toLowerCase();
+            const filtered = studentData.filter(s => s.name.toLowerCase().includes(val));
+            displayData(filtered);
         });
 
-        // 5. Generate Marksheet PDF
-        function generatePDF(index) {
+        async function downloadPDF(index) {
             const s = studentData[index];
-            const content = document.getElementById('ms-content');
-            const tableBody = document.getElementById('ms-table-body');
+            log("Generating PDF for: " + s.name);
 
-            // Set Profile Info
-            content.innerHTML = `
-                <p><strong>Student Name:</strong> ${s.StudentName || s.Name}</p>
-                <p><strong>Roll No:</strong> ${s.RollNo || s.Roll_No}</p>
-                <p><strong>Father's Name:</strong> ${s.FatherName || s.Father_Name}</p>
-                <p><strong>Class:</strong> ${s.Class}</p>
-                <p><strong>Date of Birth:</strong> ${s.DOB || '---'}</p>
-                <p><strong>Grade:</strong> ${s.Grade}</p>
+            // Populate Info
+            document.getElementById('student-info-grid').innerHTML = `
+                <p><strong>Admission No:</strong> ${s.admNo}</p>
+                <p><strong>Roll No:</strong> ${s.rollNo}</p>
+                <p><strong>Student Name:</strong> ${s.name}</p>
+                <p><strong>Class:</strong> ${s.class}</p>
+                <p><strong>Father's Name:</strong> ${s.father}</p>
+                <p><strong>Mother's Name:</strong> ${s.mother}</p>
+                <p><strong>Date of Birth:</strong> ${s.dob}</p>
+                <p><strong>Contact:</strong> ${s.contact}</p>
             `;
 
-            // Set Subject Table
-            tableBody.innerHTML = s.MarksList.map(m => `
+            // Populate Marks
+            document.getElementById('marks-table-body').innerHTML = s.marks.map(m => `
                 <tr>
-                    <td class="border border-black p-2 text-left pl-4">${m.name}</td>
+                    <td class="border border-black p-2 text-left pl-6">${m.name}</td>
                     <td class="border border-black p-2">100</td>
                     <td class="border border-black p-2 font-bold">${m.score}</td>
                 </tr>
             `).join('') + `
                 <tr class="bg-gray-100 font-bold">
-                    <td class="border border-black p-2">GRAND TOTAL</td>
+                    <td class="border border-black p-2 text-right">TOTAL MARKS:</td>
                     <td class="border border-black p-2">500</td>
-                    <td class="border border-black p-2">${s.GrandTotal} (${s.Percentage}%)</td>
+                    <td class="border border-black p-2 text-blue-800">${s.total} (${s.percentage}%)</td>
+                </tr>
+                <tr class="bg-gray-50 font-bold">
+                    <td colspan="2" class="border border-black p-2 text-right">FINAL GRADE:</td>
+                    <td class="border border-black p-2 text-red-600 text-xl">${s.grade}</td>
                 </tr>
             `;
 
-            const element = document.getElementById('marksheet-pdf-area');
+            const element = document.getElementById('marksheet-template');
             const opt = {
-                margin: 0,
-                filename: `Marksheet_${s.StudentName}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                margin: 5,
+                filename: `Result_${s.name}_${s.rollNo}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 3, useCORS: true, logging: false },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).save();
+            try {
+                await html2pdf().set(opt).from(element).save();
+                log("PDF Downloaded successfully.");
+            } catch (err) {
+                log("PDF Error: " + err.message);
+                alert("Failed to generate PDF. Check log.");
+            }
         }
     </script>
 </body>
 </html>
-            
+                    
