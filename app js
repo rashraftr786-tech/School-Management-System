@@ -1,116 +1,37 @@
-// Verification that the script is running
-console.log("System Initialized...");
+// Function to verify everything is linked
+console.log("Script loaded and running.");
 
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('excelInput');
-    
-    if (!fileInput) {
-        console.error("Critical Error: excelInput element not found in HTML!");
-        return;
-    }
 
+    // Triggered when you select a file
     fileInput.addEventListener('change', function(e) {
-        console.log("File detected!"); // If this doesn't show in F12 console, the event listener failed
-        
         const file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
+        console.log("File selected: ", file.name);
 
-        reader.onload = (evt) => {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
             try {
                 const data = evt.target.result;
-                // Use array type for better compatibility
                 const workbook = XLSX.read(data, { type: 'binary' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 
-                const rawData = XLSX.utils.sheet_to_json(sheet);
-                console.log("Extracted Data:", rawData);
-
-                if (rawData.length === 0) {
-                    alert("The Excel file seems to be empty.");
-                    return;
+                // Convert Excel to JSON data
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                if (jsonData.length > 0) {
+                    processData(jsonData); // This is your function that handles the marks
+                    alert("Upload successful! Found " + jsonData.length + " students.");
                 }
-
-                processData(rawData);
-                alert("Data Uploaded Successfully!");
             } catch (err) {
-                console.error("Excel Parsing Error:", err);
-                alert("Failed to read Excel. Ensure it is a valid .xlsx file.");
+                console.error("Error reading file:", err);
+                alert("Could not read Excel file. Make sure it's a valid .xlsx file.");
             }
         };
-
-        reader.onerror = (ex) => {
-            console.error("FileReader Error:", ex);
-        };
-
         reader.readAsBinaryString(file);
     });
 });
 
-// Helper to ensure data processing is separate from UI
-function processData(data) {
-    // ... (keep the same processData logic from the previous response)
-    // Make sure to call renderTable(studentData) at the end
-}
-    // Fill Template Fields
-    document.getElementById('ms-name').innerText = s.StudentName;
-    document.getElementById('ms-roll').innerText = s.RollNumber;
-    document.getElementById('ms-fname').innerText = s.FatherName;
-    document.getElementById('ms-adm').innerText = s.AdmissionNumber;
-    document.getElementById('ms-dob').innerText = s.DateOfBirth;
-    document.getElementById('ms-pen').innerText = s.PENNumber || 'N/A';
-    document.getElementById('ms-session').innerText = s.AcademicSession;
-    document.getElementById('ms-grand-total').innerText = `${s.GrandTotal} / 500`;
-    document.getElementById('ms-percentage').innerText = `${s.Percentage}%`;
-    document.getElementById('ms-grade').innerText = s.Grade;
-
-    // Handle Photo
-    const photoArea = document.getElementById('ms-photo-area');
-    if (photoStore[s.RollNumber]) {
-        photoArea.innerHTML = `<img src="${photoStore[s.RollNumber]}" class="w-full h-full object-cover">`;
-    } else {
-        photoArea.innerHTML = `<span class="text-xs">No Photo</span>`;
-    }
-
-    // Fill Subject Marks
-    const subjects = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
-    const marksBody = document.getElementById('ms-marks-body');
-    marksBody.innerHTML = '';
     
-    subjects.forEach(sub => {
-        marksBody.innerHTML += `
-            <tr>
-                <td class="border border-gray-800 p-1 text-left px-2 font-bold">${sub}</td>
-                <td class="border border-gray-800 p-1">${s[sub+'_FA'] || 0}</td>
-                <td class="border border-gray-800 p-1">${s[sub+'_CC'] || 0}</td>
-                <td class="border border-gray-800 p-1">${s[sub+'_SA'] || 0}</td>
-                <td class="border border-gray-800 p-1 font-bold">${s[sub+'_Total']}</td>
-            </tr>
-        `;
-    });
-
-    // Generate PDF
-    const opt = {
-        margin: 0,
-        filename: `${s.StudentName}_Marksheet.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(pdfContent).toPdf().get('pdf').then((pdf) => {
-        pdfContent.style.display = 'none'; // Keep hidden after prep
-    }).save();
-}
-
-// 6. Simple Search
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    const filtered = studentData.filter(s => 
-        s.StudentName.toLowerCase().includes(term) || 
-        s.RollNumber.toString().includes(term)
-    );
-    renderTable(filtered);
-});
