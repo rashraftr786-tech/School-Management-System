@@ -1,0 +1,161 @@
+let studentData = [];
+const photoStore = {}; // Stores base64 images linked to Roll Numbers
+
+// 1. Handle Excel Upload
+document.getElementById('excelInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (evt) => {
+        const data = evt.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        
+        // Convert to JSON
+        const rawData = XLSX.utils.sheet_to_json(sheet);
+        processData(rawData);
+    };
+    reader.readAsBinaryString(file);
+});
+
+// 2. Process & Calculate
+function processData(data) {
+    studentData = data.map(student => {
+        const subjects = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
+        let grandTotal = 0;
+
+        subjects.forEach(sub => {
+            const fa = Number(student[`${sub}_FA`]) || 0;
+            const cc = Number(student[`${sub}_CC`]) || 0;
+            const sa = Number(student[`${sub}_SA`]) || 0;
+            const total = fa + cc + sa;
+            student[`${sub}_Total`] = total;
+            grandTotal += total;
+        });
+
+        const percentage = (grandTotal / 500) * 100;
+        student.GrandTotal = grandTotal;
+        student.Percentage = percentage.toFixed(2);
+        student.Grade = calculateGrade(percentage);
+        return student;
+    });
+
+    renderTable(studentData);
+}
+
+function calculateGrade(pct) {
+    if (pct >= 90) return 'A+';
+    if (pct >= 80) return 'A';
+    if (pct >= 70) return 'B';
+    if (pct >= 60) return 'C';
+    if (pct >= 50) return 'D';
+    return 'E';
+}
+
+// 3. Render Table
+function renderTable(data) {
+    const tbody = document.getElementById('studentTableBody');
+    tbody.innerHTML = '';
+    document.getElementById('studentCount').innerText = data.length;
+
+    data.forEach((s, index) => {
+        const row = `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="p-4">${s.RollNumber}</td>
+                <td class="p-4 font-medium">${s.StudentName}</td>
+                <td class="p-4">${s.Class}</td>
+                <td class="p-4 font-bold text-blue-600">${s.Percentage}%</td>
+                <td class="p-4 font-bold">${s.Grade}</td>
+                <td class="p-4 flex justify-center gap-2">
+                    <button onclick="triggerPhotoUpload('${s.RollNumber}')" class="bg-gray-200 text-xs px-2 py-1 rounded">📷 Photo</button>
+                    <button onclick="generatePDF(${index})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">🖨️ Marksheet</button>
+                </td>
+            </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+    });
+}
+
+// 4. Image Handling
+function triggerPhotoUpload(roll) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            photoStore[roll] = evt.target.result;
+            alert(`Photo uploaded for Roll No: ${roll}`);
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+}
+
+// 5. PDF Generation
+function generatePDF(index) {
+    const s = studentData[index];
+    const pdfContent = document.getElementById('marksheet-pdf-area');
+    
+    // Fill Template Fields
+    document.getElementById('ms-name').innerText = s.StudentName;
+    document.getElementById('ms-roll').innerText = s.RollNumber;
+    document.getElementById('ms-fname').innerText = s.FatherName;
+    document.getElementById('ms-adm').innerText = s.AdmissionNumber;
+    document.getElementById('ms-dob').innerText = s.DateOfBirth;
+    document.getElementById('ms-pen').innerText = s.PENNumber || 'N/A';
+    document.getElementById('ms-session').innerText = s.AcademicSession;
+    document.getElementById('ms-grand-total').innerText = `${s.GrandTotal} / 500`;
+    document.getElementById('ms-percentage').innerText = `${s.Percentage}%`;
+    document.getElementById('ms-grade').innerText = s.Grade;
+
+    // Handle Photo
+    const photoArea = document.getElementById('ms-photo-area');
+    if (photoStore[s.RollNumber]) {
+        photoArea.innerHTML = `<img src="${photoStore[s.RollNumber]}" class="w-full h-full object-cover">`;
+    } else {
+        photoArea.innerHTML = `<span class="text-xs">No Photo</span>`;
+    }
+
+    // Fill Subject Marks
+    const subjects = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
+    const marksBody = document.getElementById('ms-marks-body');
+    marksBody.innerHTML = '';
+    
+    subjects.forEach(sub => {
+        marksBody.innerHTML += `
+            <tr>
+                <td class="border border-gray-800 p-1 text-left px-2 font-bold">${sub}</td>
+                <td class="border border-gray-800 p-1">${s[sub+'_FA'] || 0}</td>
+                <td class="border border-gray-800 p-1">${s[sub+'_CC'] || 0}</td>
+                <td class="border border-gray-800 p-1">${s[sub+'_SA'] || 0}</td>
+                <td class="border border-gray-800 p-1 font-bold">${s[sub+'_Total']}</td>
+            </tr>
+        `;
+    });
+
+    // Generate PDF
+    const opt = {
+        margin: 0,
+        filename: `${s.StudentName}_Marksheet.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(pdfContent).toPdf().get('pdf').then((pdf) => {
+        pdfContent.style.display = 'none'; // Keep hidden after prep
+    }).save();
+}
+
+// 6. Simple Search
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = studentData.filter(s => 
+        s.StudentName.toLowerCase().includes(term) || 
+        s.RollNumber.toString().includes(term)
+    );
+    renderTable(filtered);
+});
