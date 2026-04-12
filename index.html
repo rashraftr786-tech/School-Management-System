@@ -2,103 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Pethgam Wagoora - Result Management System</title>
+    <title>School Management System</title>
+    <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="school-header">
-                <img src="new-logo.png" alt="School Logo" class="school-logo">
-                <div class="school-info">
-                    <h1>Government Primary School Pethgam Wagoora</h1>
-                    <p>Wagoora, Sopore, Jammu & Kashmir</p>
-                </div>
-            </div>
-        </header>
-
-        <div class="upload-section">
-            <div class="upload-card">
-                <h2>📁 Upload Excel Results</h2>
-                <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
-                <button type="button" onclick="processExcel()" class="btn-primary">Process File</button>
-            </div>
-        </div>
-
-        <div class="controls">
-            <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="filterTable()">
-            <select id="classFilter" onchange="filterTable()">
-                <option value="">All Classes</option>
-            </select>
-            <button type="button" onclick="generateReport()" class="btn-secondary" style="margin-left: 10px; cursor: pointer;">📄 Download PDF</button>
-        </div>
-
-        <div class="table-container">
-            <table id="resultsTable" class="results-table">
-                <thead>
-                    <tr>
-                        <th>Photo</th>
-                        <th>Student Name</th>
-                        <th>Father's Name</th>
-                        <th>Roll No</th>
-                        <th>Class</th>
-                        <th>Total (%)</th>
-                        <th>Grade</th>
-                        <th>Rank</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
+        <div id="tableBody"></div>
     </div>
-
-    <div id="photoModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-        <div class="modal-content" style="background-color: white; margin: 15% auto; padding: 20px; width: 300px; border-radius: 10px; text-align: center;">
-            <span class="close" onclick="closeModal()" style="float: right; cursor: pointer; font-size: 24px;">&times;</span>
-            <h3>Upload Student Photo</h3>
-            <input type="file" id="photoFile" accept="image/*" style="margin: 15px 0;">
-            <button type="button" onclick="performUpload()" class="btn-primary">Upload Now</button>
-        </div>
-    </div> 
-    <script>
-        let selectedStudentIndex = null;
-
-        function openPhotoModal(index) {
-            selectedStudentIndex = index;
-            document.getElementById('photoModal').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('photoModal').style.display = 'none';
-        }
-
-        function performUpload() {
-            const file = document.getElementById('photoFile').files[0];
-            if (!file) {
-                alert("Please select a photo.");
-                return;
-            }
-            console.log("Uploading photo for student index:", selectedStudentIndex);
-            // Here you would add the actual logic to save the photo
-            alert("Photo uploaded successfully for student " + selectedStudentIndex);
-            closeModal();
-        }
-        
-        // Ensure generateReport exists for the main button
-        function generateReport(index) {
-            if (typeof window.generateReport === "function") {
-                window.generateReport(index);
-            } else {
-                alert("PDF logic is still loading or missing in script.js");
-            }
-        }
-    </script>
+    <script src="assets/js/pdf-helper.js"></script>
+    <script src="assets/js/excel-helper.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>
         
