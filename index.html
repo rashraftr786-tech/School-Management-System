@@ -2,19 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>School Management System</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Pethgam Wagoora - Management System</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <div id="tableBody"></div>
+        <header>
+            <div class="school-header">
+                <img src="new-logo.png" alt="School Logo" class="school-logo" onerror="this.src='https://via.placeholder.com/80'">
+                <div class="school-info">
+                    <h1>Government Primary School Pethgam Wagoora</h1>
+                    <p>Wagoora, Sopore, Jammu & Kashmir</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="upload-section">
+            <div class="upload-card">
+                <h2>📁 Upload Excel Results</h2>
+                <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
+                <button type="button" id="processBtn" class="btn-primary">Process File</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search by name...">
+            <select id="classFilter">
+                <option value="">All Classes</option>
+            </select>
+            <button type="button" id="downloadFullPDF" class="btn-secondary">📄 Full Report PDF</button>
+        </div>
+
+        <div class="table-container">
+            <table id="resultsTable" class="results-table">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Student Name</th>
+                        <th>Father's Name</th>
+                        <th>Roll No</th>
+                        <th>Class</th>
+                        <th>Total (%)</th>
+                        <th>Grade</th>
+                        <th>Rank</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+        </div>
     </div>
-    <script src="assets/js/pdf-helper.js"></script>
-    <script src="assets/js/excel-helper.js"></script>
-    <script src="assets/js/main.js"></script>
+
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Update Student Photo</h3>
+            <input type="file" id="photoFile" accept="image/*">
+            <button type="button" id="confirmUpload" class="btn-primary">Upload Now</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
-        
