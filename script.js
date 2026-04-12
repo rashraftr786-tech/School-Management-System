@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function processExcel() {
-    const file = document.getElementById('excelFile').files[0];
-    if (!file) return alert("Please select a file!");
+    const fileInput = document.getElementById('excelFile');
+    if (!fileInput.files.length) return alert("Please select a file!");
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -29,17 +29,16 @@ function processExcel() {
         populateClassFilter();
         renderTable(allStudents);
     };
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(fileInput.files[0]);
 }
 
 function renderTable(data) {
     const tbody = document.getElementById('tableBody');
-    // Safety check for empty data
     if (!tbody) return;
     
     tbody.innerHTML = data.map((s, index) => `
         <tr>
-            <td><img src="https://via.placeholder.com/45" class="student-photo" id="img-${index}"></td>
+            <td><img src="https://via.placeholder.com/45" class="student-photo" id="img-${index}" alt="Student"></td>
             <td>${s['Student Name'] || 'N/A'}</td>
             <td>${s["Father's Name"] || 'N/A'}</td>
             <td>${s['Roll No'] || 'N/A'}</td>
@@ -69,7 +68,7 @@ function filterData() {
 
 function populateClassFilter() {
     const select = document.getElementById('classFilter');
-    const classes = [...new Set(allStudents.map(s => s['Class']))];
+    const classes = [...new Set(allStudents.map(s => s['Class']).filter(c => c))];
     select.innerHTML = '<option value="">All Classes</option>' + 
         classes.map(c => `<option value="${c}">${c}</option>`).join('');
 }
@@ -122,7 +121,7 @@ async function generateDetailedReport(index) {
         doc.text("FA1", 60, 67); doc.text("FA2", 80, 67); doc.text("FA3", 100, 67);
         doc.text("FA4", 120, 67); doc.text("Total", 140, 67); doc.text("Grade", 160, 67);
 
-        // 4. Subject Data (Mapping rows)
+        // 4. Subject Data
         const subjects = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
         let y = 75;
         subjects.forEach(sub => {
@@ -149,11 +148,12 @@ async function generateDetailedReport(index) {
     } else {
         // Fallback for full table export
         const table = document.getElementById('resultsTable');
-        const canvas = await html2canvas(table, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        doc.addImage(imgData, 'PNG', 10, 10, 190, 0);
-        doc.save("Full_School_Report.pdf");
+        if (table) {
+            const canvas = await html2canvas(table, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 10, 10, 190, 0);
+            doc.save("Full_School_Report.pdf");
+        }
     }
 }
-
-}
+        
