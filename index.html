@@ -35,6 +35,7 @@
             <select id="classFilter" onchange="filterTable()">
                 <option value="">All Classes</option>
             </select>
+            <button onclick="downloadPDF()" class="btn-secondary" style="margin-left: 10px; padding: 10px 20px; cursor: pointer;">📄 Download PDF</button>
         </div>
 
         <div class="table-container">
@@ -57,10 +58,9 @@
         </div>
     </div>
 
-    <!-- Photo Upload Modal -->
     <div id="photoModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" onclick="document.getElementById('photoModal').style.display='none'">&times;</span>
             <h3>Upload Student Photo</h3>
             <input type="file" id="photoFile" accept="image/*">
             <button onclick="uploadPhoto()" class="btn-primary">Upload</button>
