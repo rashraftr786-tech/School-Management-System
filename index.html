@@ -58,9 +58,9 @@
         </div>
     </div>
 
-    <div id="photoModal" class="modal">
+    <div id="photoModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close" onclick="document.getElementById('photoModal').style.display='none'">&times;</span>
+            <span class="close" onclick="closeModal()">&times;</span>
             <h3>Upload Student Photo</h3>
             <input type="file" id="photoFile" accept="image/*">
             <button type="button" id="modalUploadBtn" onclick="uploadPhoto()" class="btn-primary">Upload</button>
@@ -68,5 +68,26 @@
     </div>
 
     <script src="script.js"></script>
+
+    <script>
+        function closeModal() {
+            document.getElementById('photoModal').style.display = 'none';
+        }
+
+        // This handles the "Photo" buttons dynamically generated in your table
+        function openPhotoModal(studentId) {
+            window.currentStudentId = studentId;
+            document.getElementById('photoModal').style.display = 'flex';
+        }
+
+        // Bridge for the PDF buttons inside the table rows
+        function downloadStudentPDF(studentId) {
+            if (typeof window.generateStudentPDF === "function") {
+                window.generateStudentPDF(studentId);
+            } else {
+                console.error("Function generateStudentPDF not found in script.js");
+            }
+        }
+    </script>
 </body>
 </html>
