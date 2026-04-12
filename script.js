@@ -35,20 +35,21 @@ function renderTable(data) {
     tbody.innerHTML = data.map((s, index) => `
         <tr>
             <td><img src="https://via.placeholder.com/45" class="student-photo" id="img-${index}"></td>
-            <td>${s['Student Name'] || 'N/A'}</td>
-            <td>${s["Father's Name"] || 'N/A'}</td>
-            <td>${s['Roll No'] || 'N/A'}</td>
-            <td>${s['Class'] || 'N/A'}</td>
-            <td>${s['Total (%)'] || '0'}%</td>
-            <td><span class="grade-badge grade-${(s['Grade'] || '').replace('+', 'plus')}">${s['Grade'] || 'N/A'}</span></td>
-            <td>${s['Rank'] || 'N/A'}</td>
+            <td>${s['Student Name']}</td>
+            <td>${s["Father's Name"]}</td>
+            <td>${s['Roll No']}</td>
+            <td>${s['Class']}</td>
+            <td>${s['Overall Percentage']}%</td>
+            <td><span class="grade-badge">${s['Overall Grade']}</span></td>
+            <td>${s['Class Rank']}</td>
             <td>
                 <button onclick="openModal(${index})" class="btn-sm btn-primary">Photo</button>
-                <button onclick="generatePDF(${index})" class="btn-sm btn-secondary">PDF</button>
+                <button onclick="generateDetailedReport(${index})" class="btn-sm btn-secondary">Report</button>
             </td>
         </tr>
     `).join('');
 }
+
 
 function filterData() {
     const search = document.getElementById('searchInput').value.toLowerCase();
@@ -86,27 +87,29 @@ function savePhoto() {
     }
 }
 
-async function generatePDF(index) {
+async function generateDetailedReport(index) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const s = allStudents[index];
 
-    if (index !== undefined) {
-        // Single Marksheet
-        const s = allStudents[index];
-        doc.setFontSize(20);
-        doc.text("OFFICIAL REPORT CARD", 105, 20, { align: "center" });
-        doc.setFontSize(12);
-        doc.text(`Student Name: ${s['Student Name']}`, 20, 40);
-        doc.text(`Roll No: ${s['Roll No']}`, 20, 50);
-        doc.text(`Grade: ${s['Grade']}`, 20, 60);
-        doc.save(`${s['Student Name']}_Result.pdf`);
-    } else {
-        // Full Table capture
-        const table = document.getElementById('resultsTable');
-        const canvas = await html2canvas(table);
-        const imgData = canvas.toDataURL('image/png');
-        doc.addImage(imgData, 'PNG', 10, 10, 190, 0);
-        doc.save("Full_School_Report.pdf");
-    }
+    // Header Section
+    doc.setFontSize(22);
+    doc.text("GOVERNMENT PRIMARY SCHOOL PETHGAM WAGOORA", 105, 15, { align: "center" });
+    
+    // Personal Details Grid
+    doc.setFontSize(12);
+    doc.text(`Student: ${s['Student Name']}`, 20, 30);
+    doc.text(`Fathers Name: ${s["Father's Name"]}`, 20, 40);
+    doc.text(`Adm No: ${s['Adm No']} | Roll No: ${s['Roll No']}`, 20, 50);
+
+    // Final Results Section
+    doc.rect(20, 70, 170, 40); // Box for summary
+    doc.text(`Total Marks: ${s['Total Marks Obtained']} / ${s['Max Marks']}`, 25, 80);
+    doc.text(`Overall Percentage: ${s['Overall Percentage']}%`, 25, 90);
+    doc.text(`Position: ${s['Position in Class']}`, 25, 100);
+
+    doc.save(`${s['Student Name']}_Detailed_Report.pdf`);
+}
+
 }
     
