@@ -119,7 +119,9 @@ async function generateDetailedReport(index) {
         doc.rect(20, 60, 170, 10);
         doc.text("Subject", 25, 67);
         doc.text("FA1", 60, 67); doc.text("FA2", 80, 67); doc.text("FA3", 100, 67);
-        doc.text("FA4", 120, 67); doc.text("Total", 140, 67); doc.text("Grade", 160, 67);
+        doc.text("FA4", 120, 67); doc.text("FA5", 140, 67); doc.text("FA6", 160, 67); 
+        doc.text("CCA", 180, 67); doc.text("SA", 200, 67); doc.text("Total", 220, 67); 
+        doc.text("Grade", 240, 67);
 
         // 4. Subject Data
         const subjects = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
@@ -130,9 +132,13 @@ async function generateDetailedReport(index) {
             doc.text(`${s[sub + ' FA2'] || '0'}`, 80, y);
             doc.text(`${s[sub + ' FA3'] || '0'}`, 100, y);
             doc.text(`${s[sub + ' FA4'] || '0'}`, 120, y);
-            doc.text(`${s[sub + ' Total'] || '0'}`, 140, y);
-            doc.text(`${s[sub + ' Grade'] || 'N/A'}`, 160, y);
-            y += 7;
+            doc.text(`${s[sub + ' FA5'] || '0'}`, 140, y);
+            doc.text(`${s[sub + ' FA6'] || '0'}`, 160, y);
+            doc.text(`${s[sub + ' CCA'] || '0'}`, 180, y);
+            doc.text(`${s[sub + ' SSA'] || '0'}`, 200, y);
+            doc.text(`${s[sub + ' Total'] || '0'}`, 220, y);
+            doc.text(`${s[sub + ' Grade'] || 'N/A'}`, 240, y);
+            y += 10;
         });
 
         // 5. Final Results Box
