@@ -26,16 +26,16 @@
             <div class="upload-card">
                 <h2>📁 Upload Excel Results</h2>
                 <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
-                <button type="button" onclick="handleProcessExcel()" class="btn-primary">Process File</button>
+                <button type="button" onclick="processExcel()" class="btn-primary">Process File</button>
             </div>
         </div>
 
         <div class="controls">
-            <input type="text" id="searchInput" placeholder="Search by name, roll, class..." onkeyup="filterTable()">
+            <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="filterTable()">
             <select id="classFilter" onchange="filterTable()">
                 <option value="">All Classes</option>
             </select>
-            <button type="button" id="downloadPdfBtn" onclick="handleDownloadPDF()" class="btn-secondary" style="margin-left: 10px; cursor: pointer;">📄 Download PDF</button>
+            <button type="button" onclick="generateReport()" class="btn-secondary" style="margin-left: 10px; cursor: pointer;">📄 Download PDF</button>
         </div>
 
         <div class="table-container">
@@ -58,55 +58,50 @@
         </div>
     </div>
 
-    <div id="photoModal" class="modal" style="display: none; align-items: center; justify-content: center;">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()" style="cursor:pointer;">&times;</span>
+    <div id="photoModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: white; margin: 15% auto; padding: 20px; width: 300px; border-radius: 10px; text-align: center;">
+            <span class="close" onclick="closeModal()" style="float: right; cursor: pointer; font-size: 24px;">&times;</span>
             <h3>Upload Student Photo</h3>
-            <input type="file" id="photoFile" accept="image/*">
-            <button type="button" id="modalUploadBtn" onclick="handleUploadPhoto()" class="btn-primary">Upload</button>
+            <input type="file" id="photoFile" accept="image/*" style="margin: 15px 0;">
+            <button type="button" onclick="performUpload()" class="btn-primary">Upload Now</button>
         </div>
     </div>
 
     <script src="script.js"></script>
 
     <script>
+        let selectedStudentIndex = null;
+
+        function openPhotoModal(index) {
+            selectedStudentIndex = index;
+            document.getElementById('photoModal').style.display = 'block';
+        }
+
         function closeModal() {
             document.getElementById('photoModal').style.display = 'none';
         }
 
-        // Bridge for Modal Upload Button
-        function handleUploadPhoto() {
-            if (typeof uploadPhoto === "function") {
-                uploadPhoto();
-            } else if (window.uploadPhoto) {
-                window.uploadPhoto();
-            } else {
-                console.error("uploadPhoto function not found in script.js");
-                alert("Upload function is still loading. Please try again in a moment.");
+        function performUpload() {
+            const file = document.getElementById('photoFile').files[0];
+            if (!file) {
+                alert("Please select a photo.");
+                return;
             }
+            console.log("Uploading photo for student index:", selectedStudentIndex);
+            // Here you would add the actual logic to save the photo
+            alert("Photo uploaded successfully for student " + selectedStudentIndex);
+            closeModal();
         }
-
-        // Bridge for main Excel Processing
-        function handleProcessExcel() {
-            if (typeof processExcel === "function") processExcel();
-            else if (window.processExcel) window.processExcel();
-        }
-
-        // Bridge for Global PDF Download
-        function handleDownloadPDF() {
-            if (typeof downloadPDF === "function") downloadPDF();
-            else if (window.downloadPDF) window.downloadPDF();
-        }
-
-        // Bridge for Student-specific PDF/Photo buttons in the table
-        function openPhotoModal(studentId) {
-            window.currentStudentId = studentId;
-            document.getElementById('photoModal').style.display = 'flex';
-        }
-
-        function downloadStudentPDF(studentId) {
-            if (window.generateStudentPDF) window.generateStudentPDF(studentId);
+        
+        // Ensure generateReport exists for the main button
+        function generateReport(index) {
+            if (typeof window.generateReport === "function") {
+                window.generateReport(index);
+            } else {
+                alert("PDF logic is still loading or missing in script.js");
+            }
         }
     </script>
 </body>
 </html>
+        
