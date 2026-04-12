@@ -26,7 +26,7 @@
             <div class="upload-card">
                 <h2>📁 Upload Excel Results</h2>
                 <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
-                <button type="button" onclick="processExcel()" class="btn-primary">Process File</button>
+                <button type="button" onclick="handleProcessExcel()" class="btn-primary">Process File</button>
             </div>
         </div>
 
@@ -35,7 +35,7 @@
             <select id="classFilter" onchange="filterTable()">
                 <option value="">All Classes</option>
             </select>
-            <button type="button" id="downloadPdfBtn" onclick="downloadPDF()" class="btn-secondary" style="margin-left: 10px; cursor: pointer;">📄 Download PDF</button>
+            <button type="button" id="downloadPdfBtn" onclick="handleDownloadPDF()" class="btn-secondary" style="margin-left: 10px; cursor: pointer;">📄 Download PDF</button>
         </div>
 
         <div class="table-container">
@@ -58,12 +58,12 @@
         </div>
     </div>
 
-    <div id="photoModal" class="modal" style="display: none;">
+    <div id="photoModal" class="modal" style="display: none; align-items: center; justify-content: center;">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+            <span class="close" onclick="closeModal()" style="cursor:pointer;">&times;</span>
             <h3>Upload Student Photo</h3>
             <input type="file" id="photoFile" accept="image/*">
-            <button type="button" id="modalUploadBtn" onclick="uploadPhoto()" class="btn-primary">Upload</button>
+            <button type="button" id="modalUploadBtn" onclick="handleUploadPhoto()" class="btn-primary">Upload</button>
         </div>
     </div>
 
@@ -74,19 +74,38 @@
             document.getElementById('photoModal').style.display = 'none';
         }
 
-        // This handles the "Photo" buttons dynamically generated in your table
+        // Bridge for Modal Upload Button
+        function handleUploadPhoto() {
+            if (typeof uploadPhoto === "function") {
+                uploadPhoto();
+            } else if (window.uploadPhoto) {
+                window.uploadPhoto();
+            } else {
+                console.error("uploadPhoto function not found in script.js");
+                alert("Upload function is still loading. Please try again in a moment.");
+            }
+        }
+
+        // Bridge for main Excel Processing
+        function handleProcessExcel() {
+            if (typeof processExcel === "function") processExcel();
+            else if (window.processExcel) window.processExcel();
+        }
+
+        // Bridge for Global PDF Download
+        function handleDownloadPDF() {
+            if (typeof downloadPDF === "function") downloadPDF();
+            else if (window.downloadPDF) window.downloadPDF();
+        }
+
+        // Bridge for Student-specific PDF/Photo buttons in the table
         function openPhotoModal(studentId) {
             window.currentStudentId = studentId;
             document.getElementById('photoModal').style.display = 'flex';
         }
 
-        // Bridge for the PDF buttons inside the table rows
         function downloadStudentPDF(studentId) {
-            if (typeof window.generateStudentPDF === "function") {
-                window.generateStudentPDF(studentId);
-            } else {
-                console.error("Function generateStudentPDF not found in script.js");
-            }
+            if (window.generateStudentPDF) window.generateStudentPDF(studentId);
         }
     </script>
 </body>
