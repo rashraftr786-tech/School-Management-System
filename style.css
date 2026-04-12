@@ -1,3 +1,4 @@
+/* --- Base Styles --- */
 * {
     margin: 0;
     padding: 0;
@@ -20,6 +21,7 @@ body {
     overflow: hidden;
 }
 
+/* --- Header --- */
 header {
     background: linear-gradient(135deg, #4A90E2, #357ABD);
     color: white;
@@ -39,21 +41,11 @@ header {
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-.school-info h1 {
-    font-size: 28px;
-    margin-bottom: 5px;
-}
+.school-info h1 { font-size: 28px; margin-bottom: 5px; }
+.school-info p { opacity: 0.9; font-size: 16px; }
 
-.school-info p {
-    opacity: 0.9;
-    font-size: 16px;
-}
-
-.upload-section {
-    padding: 40px;
-    background: #f8f9ff;
-}
-
+/* --- Upload Section --- */
+.upload-section { padding: 40px; background: #f8f9ff; }
 .upload-card {
     background: white;
     padding: 30px;
@@ -64,21 +56,13 @@ header {
     margin: 0 auto;
 }
 
-.upload-card h2 {
-    color: #333;
-    margin-bottom: 25px;
-    font-size: 24px;
-}
-
 .file-input {
     display: block;
-    margin: 0 auto 20px;
-    padding: 12px;
+    margin: 15px auto;
+    padding: 10px;
     border: 2px dashed #4A90E2;
     border-radius: 10px;
-    background: #f8f9ff;
     width: 100%;
-    max-width: 300px;
 }
 
 .btn-primary {
@@ -87,185 +71,57 @@ header {
     border: none;
     padding: 12px 30px;
     border-radius: 25px;
-    font-size: 16px;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: 0.3s;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-}
-
-.controls {
-    padding: 20px 40px;
-    background: #f8f9ff;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
+/* --- Controls & Table --- */
+.controls { padding: 20px 40px; background: #f8f9ff; display: flex; gap: 15px; align-items: center; }
 
 #searchInput, #classFilter {
     padding: 12px 20px;
     border: 2px solid #e1e5e9;
     border-radius: 25px;
-    font-size: 14px;
 }
 
-.table-container {
-    padding: 0 40px 40px;
-    overflow-x: auto;
-}
+.table-container { padding: 0 40px 40px; overflow-x: auto; }
+.results-table { width: 100%; border-collapse: collapse; background: white; }
+.results-table th { background: #4A90E2; color: white; padding: 15px; text-align: left; }
+.results-table td { padding: 15px; border-bottom: 1px solid #eee; }
 
-.results-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.results-table th {
-    background: linear-gradient(135deg, #4A90E2, #357ABD);
-    color: white;
-    padding: 20px 15px;
-    text-align: left;
-    font-weight: 600;
-}
-
-.results-table td {
-    padding: 20px 15px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: middle;
-}
-
-.results-table tr:hover {
-    background: #f8f9ff;
-}
-
+/* --- Badges & Photos --- */
 .student-photo {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
     object-fit: cover;
-    border: 3px solid #4A90E2;
+    border-radius: 50%;
+    border: 2px solid #4A90E2;
 }
 
-.rank-badge {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
-}
+.rank-badge { background: #28a745; color: white; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
 
-.grade-badge {
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 14px;
-}
+.grade-badge { padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+.grade-A1, .grade-Aplus { background: #28a745; color: white; }
+.grade-A2 { background: #17a2b8; color: white; }
+.grade-B1, .grade-Bplus { background: #ffc107; color: #333; }
+.grade-B2 { background: #fd7e14; color: white; }
+.grade-C1 { background: #6f42c1; color: white; }
+.grade-C2 { background: #dc3545; color: white; }
 
-.grade-A1 { background: linear-gradient(135deg, #28a745, #20c997); color: white; }
-.grade-A2 { background: linear-gradient(135deg, #17a2b8, #138496); color: white; }
-.grade-B1 { background: linear-gradient(135deg, #ffc107, #e0a800); color: #333; }
-.grade-B2 { background: linear-gradient(135deg, #fd7e14, #e55a00); color: white; }
-.grade-C1 { background: linear-gradient(135deg, #6f42c1, #5a2d91); color: white; }
-.grade-C2 { background: linear-gradient(135deg, #dc3545, #c82333); color: white; }
+/* --- Action Buttons --- */
+.action-buttons { display: flex; gap: 5px; }
+.btn-small { padding: 6px 12px; border: none; border-radius: 15px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+.btn-photo { background: #6c757d; color: white; }
+.btn-marksheet { background: #28a745; color: white; }
+.btn-small:hover { opacity: 0.8; transform: translateY(-2px); }
 
-.action-buttons {
-    display: flex;
-    gap: 10px;
-}
+/* --- Modal --- */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+.modal-content { background: white; margin: 15% auto; padding: 30px; border-radius: 15px; width: 350px; text-align: center; }
 
-.btn-small {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-photo {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-marksheet {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-}
-
-.btn-small:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background: white;
-    margin: 15% auto;
-    padding: 30px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    position: relative;
-}
-
-.close {
-    position: absolute;
-    right: 20px;
-    top: 15px;
-    font-size: 28px;
-    cursor: pointer;
-    color: #999;
-}
-
-.close:hover {
-    color: #333;
-}
-
-/* Responsive */
+/* --- Responsive --- */
 @media (max-width: 768px) {
-    .container {
-        margin: 10px;
-        border-radius: 15px;
-    }
-    
-    .school-header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .controls {
-        flex-direction: column;
-        padding: 20px;
-    }
-    
-    .results-table {
-        font-size: 14px;
-    }
-    
-    .results-table th,
-    .results-table td {
-        padding: 12px 8px;
-    }
-    
-    .action-buttons {
-        flex-direction: column;
-    }
+    .controls { flex-direction: column; }
+    .action-buttons { flex-direction: column; gap: 5px; }
 }
+
