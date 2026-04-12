@@ -26,7 +26,7 @@
             <div class="upload-card">
                 <h2>📁 Upload Excel Results</h2>
                 <input type="file" id="excelFile" accept=".xlsx,.xls" class="file-input">
-                <button type="button" id="processBtn" onclick="processExcel()" class="btn-primary">Process File</button>
+                <button type="button" onclick="processExcel()" class="btn-primary">Process File</button>
             </div>
         </div>
 
@@ -35,7 +35,7 @@
             <select id="classFilter" onchange="filterTable()">
                 <option value="">All Classes</option>
             </select>
-            <button type="button" id="pdfBtn" onclick="downloadPDF()" class="btn-secondary" style="margin-left:10px;">📄 Download PDF</button>
+            <button type="button" onclick="downloadPDF()" class="btn-secondary" style="margin-left: 10px; cursor: pointer;">📄 Download PDF</button>
         </div>
 
         <div class="table-container">
@@ -60,13 +60,24 @@
 
     <div id="photoModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close" onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer;">&times;</span>
+            <span class="close" onclick="document.getElementById('photoModal').style.display='none'">&times;</span>
             <h3>Upload Student Photo</h3>
             <input type="file" id="photoFile" accept="image/*">
-            <button type="button" id="uploadPhotoBtn" onclick="uploadPhoto()" class="btn-primary">Upload</button>
+            <button type="button" onclick="uploadPhoto()" class="btn-primary">Upload</button>
         </div>
     </div>
 
     <script src="script.js"></script>
+
+    <script>
+        // Fix for jsPDF library scope (often causes PDF button to fail)
+        window.jsPDF = window.jspdf ? window.jspdf.jsPDF : null;
+
+        // Function to open the modal (Called by the 'Photo' buttons in your table)
+        function openPhotoModal(studentId) {
+            window.currentStudentId = studentId; 
+            document.getElementById('photoModal').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
