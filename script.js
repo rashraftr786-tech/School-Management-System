@@ -1,120 +1,112 @@
-// Global state to keep track of uploaded students
-let studentData = [];
-let selectedStudentIndex = null;
+let allStudents = [];
+let currentEditIndex = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("System Initialized");
+    // Event Listeners
+    document.getElementById('processBtn').onclick = processExcel;
+    document.getElementById('searchInput').onkeyup = filterData;
+    document.getElementById('classFilter').onchange = filterData;
+    document.getElementById('downloadFullPDF').onclick = () => generatePDF();
+    
+    // Modal Close logic
+    document.querySelector('.close').onclick = () => document.getElementById('photoModal').style.display = 'none';
+    document.getElementById('confirmUpload').onclick = savePhoto;
 });
 
-// --- EXCEL PROCESSING ---
 function processExcel() {
-    const fileInput = document.getElementById('excelFile');
-    const file = fileInput.files[0];
-    if (!file) return alert("Please select an Excel file.");
+    const file = document.getElementById('excelFile').files[0];
+    if (!file) return alert("Please select a file!");
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            studentData = XLSX.utils.sheet_to_json(sheet);
-            
-            renderTable(studentData);
-            populateClassFilter(studentData);
-            alert(`Success! Loaded ${studentData.length} students.`);
-        } catch (err) {
-            console.error(err);
-            alert("Error reading Excel. Check file format.");
-        }
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        allStudents = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        
+        populateClassFilter();
+        renderTable(allStudents);
     };
     reader.readAsArrayBuffer(file);
 }
 
 function renderTable(data) {
-    const tableBody = document.getElementById('tableBody');
-    tableBody.innerHTML = data.map((student, index) => `
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = data.map((s, index) => `
         <tr>
-            <td><img src="https://via.placeholder.com/40" class="student-photo" id="img-${index}"></td>
-            <td>${student['Student Name'] || 'N/A'}</td>
-            <td>${student["Father's Name"] || 'N/A'}</td>
-            <td>${student['Roll No'] || 'N/A'}</td>
-            <td>${student['Class'] || 'N/A'}</td>
-            <td>${student['Total (%)'] || '0'}%</td>
-            <td><span class="grade-badge grade-${(student['Grade'] || 'NA').replace(/\+/g, 'plus')}">${student['Grade'] || 'N/A'}</span></td>
-            <td><span class="rank-badge">${student['Rank'] || 'N/A'}</span></td>
-            <td class="action-buttons">
-                <button onclick="openPhotoModal(${index})" class="btn-small btn-photo">Photo</button>
-                <button onclick="generateReport(${index})" class="btn-small btn-marksheet">PDF</button>
+            <td><img src="https://via.placeholder.com/45" class="student-photo" id="img-${index}"></td>
+            <td>${s['Student Name'] || 'N/A'}</td>
+            <td>${s["Father's Name"] || 'N/A'}</td>
+            <td>${s['Roll No'] || 'N/A'}</td>
+            <td>${s['Class'] || 'N/A'}</td>
+            <td>${s['Total (%)'] || '0'}%</td>
+            <td><span class="grade-badge grade-${(s['Grade'] || '').replace('+', 'plus')}">${s['Grade'] || 'N/A'}</span></td>
+            <td>${s['Rank'] || 'N/A'}</td>
+            <td>
+                <button onclick="openModal(${index})" class="btn-sm btn-primary">Photo</button>
+                <button onclick="generatePDF(${index})" class="btn-sm btn-secondary">PDF</button>
             </td>
         </tr>
     `).join('');
 }
 
-// --- FILTER LOGIC ---
-function filterTable() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const classTerm = document.getElementById('classFilter').value;
-    
-    const filtered = studentData.filter(s => {
-        const matchesName = (s['Student Name'] || '').toLowerCase().includes(searchTerm);
-        const matchesClass = classTerm === "" || String(s['Class']) === classTerm;
+function filterData() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const classVal = document.getElementById('classFilter').value;
+
+    const filtered = allStudents.filter(s => {
+        const matchesName = String(s['Student Name']).toLowerCase().includes(search);
+        const matchesClass = classVal === "" || String(s['Class']) === classVal;
         return matchesName && matchesClass;
     });
-    
     renderTable(filtered);
 }
 
-function populateClassFilter(data) {
+function populateClassFilter() {
     const select = document.getElementById('classFilter');
-    const classes = [...new Set(data.map(s => s['Class']))].sort();
+    const classes = [...new Set(allStudents.map(s => s['Class']))];
     select.innerHTML = '<option value="">All Classes</option>' + 
         classes.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
-// --- MODAL & PHOTO LOGIC ---
-function openPhotoModal(index) {
-    selectedStudentIndex = index;
+function openModal(index) {
+    currentEditIndex = index;
     document.getElementById('photoModal').style.display = 'block';
 }
 
-function closeModal() {
-    document.getElementById('photoModal').style.display = 'none';
-}
-
-function performUpload() {
+function savePhoto() {
     const file = document.getElementById('photoFile').files[0];
-    if (!file) return alert("Select a file.");
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        document.getElementById(`img-${selectedStudentIndex}`).src = e.target.result;
-        closeModal();
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById(`img-${currentEditIndex}`).src = e.target.result;
+            document.getElementById('photoModal').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
-// --- PDF EXPORT ---
-async function generateReport(index) {
+async function generatePDF(index) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
     if (index !== undefined) {
-        // Single Student Logic
-        const s = studentData[index];
+        // Single Marksheet
+        const s = allStudents[index];
         doc.setFontSize(20);
-        doc.text("OFFICIAL MARKSHEET", 105, 20, { align: "center" });
+        doc.text("OFFICIAL REPORT CARD", 105, 20, { align: "center" });
         doc.setFontSize(12);
-        doc.text(`Name: ${s['Student Name']}`, 20, 40);
+        doc.text(`Student Name: ${s['Student Name']}`, 20, 40);
         doc.text(`Roll No: ${s['Roll No']}`, 20, 50);
         doc.text(`Grade: ${s['Grade']}`, 20, 60);
         doc.save(`${s['Student Name']}_Result.pdf`);
     } else {
-        // Full Table Logic
-        const element = document.getElementById('resultsTable');
-        const canvas = await html2canvas(element);
+        // Full Table capture
+        const table = document.getElementById('resultsTable');
+        const canvas = await html2canvas(table);
         const imgData = canvas.toDataURL('image/png');
         doc.addImage(imgData, 'PNG', 10, 10, 190, 0);
         doc.save("Full_School_Report.pdf");
     }
 }
+    
