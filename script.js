@@ -2,15 +2,11 @@ let allStudents = [];
 let currentEditIndex = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Event Listeners
     document.getElementById('processBtn').onclick = processExcel;
     document.getElementById('searchInput').onkeyup = filterData;
     document.getElementById('classFilter').onchange = filterData;
-    
-    // Updated: matches the renamed function below
     document.getElementById('downloadFullPDF').onclick = () => generateDetailedReport();
     
-    // Modal Close logic
     document.querySelector('.close').onclick = () => document.getElementById('photoModal').style.display = 'none';
     document.getElementById('confirmUpload').onclick = savePhoto;
 });
@@ -38,7 +34,7 @@ function renderTable(data) {
     
     tbody.innerHTML = data.map((s, index) => `
         <tr>
-            <td><img src="https://via.placeholder.com/45" class="student-photo" id="img-${index}" alt="Student"></td>
+            <td><img src="https://via.placeholder.com/45" class="student-photo" id="img-${index}" alt="Student" style="width:45px;height:45px;"></td>
             <td>${s['Student Name'] || 'N/A'}</td>
             <td>${s["Father's Name"] || 'N/A'}</td>
             <td>${s['Roll No'] || 'N/A'}</td>
@@ -92,69 +88,58 @@ function savePhoto() {
 }
 
 async function generateDetailedReport(index) {
+    if (!window.jspdf) return alert("PDF library not loaded.");
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
     
-    // Check if we are printing a single student report
     if (typeof index === 'number') {
         const s = allStudents[index];
         
-        // 1. Header
         doc.setFontSize(18);
         doc.text("GOVERNMENT PRIMARY SCHOOL", 105, 15, { align: "center" });
+        doc.setFontSize(12);
         doc.text("PETHGAM WAGOORA 193109", 105, 22, { align: "center" });
         
-        // 2. Student Details
         doc.setFontSize(10);
         doc.text(`Student Name: ${s['Student Name'] || 'N/A'}`, 20, 35);
+        doc.text(`Roll No: ${s['Roll No'] || 'N/A'}`, 140, 35);
         doc.text(`Father's Name: ${s["Father's Name"] || 'N/A'}`, 20, 40);
-        doc.text(`Mother's Name: ${s['Mother\'s Name'] || 'N/A'}`, 20, 45);
-        doc.text(`D.O.B: ${s['D.O.B'] || 'N/A'}`, 120, 35);
-        doc.text(`Adm No: ${s['Adm No'] || 'N/A'}`, 120, 40);
-        doc.text(`Roll No: ${s['Roll No'] || 'N/A'}`, 120, 45);
-        doc.text(`Academic Session: ${s['Academic Session'] || 'N/A'}`, 20, 50);
-        doc.text(`PEN No: ${s['PEN No'] || 'N/A'}`, 120, 50);
+        doc.text(`Academic Session: ${s['Academic Session'] || 'N/A'}`, 140, 40);
 
-        // 3. Subject Table Headers
-        doc.rect(20, 60, 170, 10);
-        doc.text("Subject", 25, 67);
-        doc.text("FA1", 60, 67); doc.text("FA2", 80, 67); doc.text("FA3", 100, 67);
-        doc.text("FA4", 120, 67); doc.text("FA5", 140, 67); doc.text("FA6", 160, 67); 
-        doc.text("CCA", 180, 67); doc.text("SA", 200, 67); doc.text("Total", 220, 67); 
-        doc.text("Grade", 240, 67);
+        // Adjusted layout to fit A4 width (max 210mm)
+        doc.rect(10, 55, 190, 10);
+        doc.text("Subject", 12, 62);
+        doc.text("FA1", 50, 62); doc.text("FA2", 65, 62); doc.text("FA3", 80, 62);
+        doc.text("FA4", 95, 62); doc.text("FA5", 110, 62); doc.text("FA6", 125, 62); 
+        doc.text("CCA", 140, 62); doc.text("SA", 155, 62); doc.text("Total", 170, 62); 
+        doc.text("Grade", 185, 62);
 
-        // 4. Subject Data
         const subjects = ['English', 'Math', 'EVS', 'Urdu', 'Kashmiri'];
         let y = 75;
         subjects.forEach(sub => {
-            doc.text(sub, 25, y);
-            doc.text(`${s[sub + ' FA1'] || '0'}`, 60, y);
-            doc.text(`${s[sub + ' FA2'] || '0'}`, 80, y);
-            doc.text(`${s[sub + ' FA3'] || '0'}`, 100, y);
-            doc.text(`${s[sub + ' FA4'] || '0'}`, 120, y);
-            doc.text(`${s[sub + ' FA5'] || '0'}`, 140, y);
-            doc.text(`${s[sub + ' FA6'] || '0'}`, 160, y);
-            doc.text(`${s[sub + ' CCA'] || '0'}`, 180, y);
-            doc.text(`${s[sub + ' SSA'] || '0'}`, 200, y);
-            doc.text(`${s[sub + ' Total'] || '0'}`, 220, y);
-            doc.text(`${s[sub + ' Grade'] || 'N/A'}`, 240, y);
+            doc.text(sub, 12, y);
+            doc.text(`${s[sub + ' FA1'] || '0'}`, 50, y);
+            doc.text(`${s[sub + ' FA2'] || '0'}`, 65, y);
+            doc.text(`${s[sub + ' FA3'] || '0'}`, 80, y);
+            doc.text(`${s[sub + ' FA4'] || '0'}`, 95, y);
+            doc.text(`${s[sub + ' FA5'] || '0'}`, 110, y);
+            doc.text(`${s[sub + ' FA6'] || '0'}`, 125, y);
+            doc.text(`${s[sub + ' CCA'] || '0'}`, 140, y);
+            doc.text(`${s[sub + ' SSA'] || '0'}`, 155, y);
+            doc.text(`${s[sub + ' Total'] || '0'}`, 170, y);
+            doc.text(`${s[sub + ' Grade'] || 'N/A'}`, 185, y);
             y += 10;
         });
 
-        // 5. Final Results Box
-        doc.rect(20, y + 10, 170, 30);
-        doc.text(`Total Marks: ${s['Total Marks Obtained'] || '0'} / ${s['Max Marks'] || '0'}`, 25, y + 20);
-        doc.text(`Overall Percentage: ${s['Overall Percentage'] || '0'}%`, 25, y + 27);
-        doc.text(`Result: ${s['Result'] || 'N/A'}`, 120, y + 20);
-        doc.text(`Class Rank: ${s['Class Rank'] || 'N/A'}`, 120, y + 27);
+        doc.rect(10, y + 5, 190, 20);
+        doc.text(`Total Marks: ${s['Total Marks Obtained'] || '0'} / ${s['Max Marks'] || '0'}`, 15, y + 12);
+        doc.text(`Percentage: ${s['Overall Percentage'] || '0'}%`, 15, y + 19);
+        doc.text(`Result: ${s['Result'] || 'N/A'}`, 120, y + 12);
         
-        doc.text(`General Remarks: ${s['General Remarks'] || 'Well done!'}`, 20, y + 45);
-
         doc.save(`${s['Student Name']}_ReportCard.pdf`);
     } else {
-        // Fallback for full table export
         const table = document.getElementById('resultsTable');
-        if (table) {
+        if (table && window.html2canvas) {
             const canvas = await html2canvas(table, { scale: 2 });
             const imgData = canvas.toDataURL('image/png');
             doc.addImage(imgData, 'PNG', 10, 10, 190, 0);
